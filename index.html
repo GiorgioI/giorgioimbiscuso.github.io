@@ -481,76 +481,121 @@
     </section>
 
     <!-- Projects Section -->
- <section id="projects">
+<!-- ===== Projects ===== -->
+<section id="projects">
   <div class="container">
     <h2 class="section-title">Projects</h2>
-
     <div class="projects-grid">
-      <!-- Project 1 -->
+
+      <!-- Digital Divide -->
       <div class="project-card">
         <h3>Philadelphia's Digital Divide Analysis</h3>
         <div class="tags">
-          <!-- already working -->
+          <!-- NOTE: clickable + data-modal -->
           <span class="tag clickable" data-modal="digital-divide">R</span>
         </div>
         <p>Analyzed the relationship between household income and internet access across Philadelphia census tracts using R. Created choropleth map visualizing percentage of households without internet access, bar chart showing broadband access by income brackets, and scatter plot comparing linear vs logistic regression models. Used US Census Bureau ACS 2022 data to examine digital equity patterns across the city.</p>
       </div>
 
-      <!-- Project 2 -->
+      <!-- Indego -->
       <div class="project-card">
         <h3>Indego Bike Share Analysis</h3>
         <div class="tags">
-          <!-- make this behave like the one above -->
-          <span class="tag clickable" data-modal="indego-bike-share">ArcGIS Pro</span>
+          <!-- Make this a button too -->
+          <span class="tag clickable" data-modal="indego">ArcGIS Pro</span>
         </div>
         <p>Spatial analysis of Philadelphia's Indego bike share system examining station distribution, usage patterns, and accessibility across neighborhoods. Evaluated service equity and identified potential expansion areas to improve sustainable transportation access.</p>
       </div>
+
     </div>
   </div>
 </section>
 
-<!-- Modals (one per project) -->
-<div id="digital-divide" class="modal">
+<!-- ===== Modals (place right before </body>) ===== -->
+<div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="modal-content">
-    <button class="modal-close" aria-label="Close" onclick="closeModal()">×</button>
-    <img src="images/digital-divide.png" alt="Visuals from Philadelphia Digital Divide analysis">
+    <button class="modal-close" aria-label="Close image (Esc)" type="button">&times;</button>
+    <!-- One <img>; we swap its src/alt based on which tag was clicked -->
+    <img id="modal-image" src="" alt="">
+    <p id="modal-caption" class="visually-hidden"></p>
   </div>
 </div>
 
-<div id="indego-bike-share" class="modal">
-  <div class="modal-content">
-    <button class="modal-close" aria-label="Close" onclick="closeModal()">×</button>
-    <!-- use your exported image here -->
-    <img src="images/IndeGo_July-September.png" alt="Map of the 10 busiest Indego stations (Summer 2025)">
-  </div>
-</div>
+<!-- ===== Minimal modal-only CSS (scoped) ===== -->
+<style>
+  .modal{display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.7)}
+  .modal[aria-hidden="false"]{display:flex}
+  .modal-content{position:relative;max-width:min(1100px,95vw);max-height:90vh}
+  .modal-content img{display:block;max-width:100%;max-height:90vh;height:auto;width:auto;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .modal-close{position:absolute;top:-10px;right:-10px;border:0;background:#fff;border-radius:9999px;width:32px;height:32px;cursor:pointer;font-size:20px;line-height:32px}
+  .visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+</style>
 
+<!-- ===== JS ===== -->
 <script>
-  // open the matching modal when a clickable tag is pressed
-  document.querySelectorAll('.tag.clickable').forEach(tag => {
-    tag.addEventListener('click', () => {
-      const id = tag.dataset.modal;
-      const modal = document.getElementById(id);
-      if (modal) modal.classList.add('active');
-    });
-  });
+  // Map modal ids to assets/alt text
+  const MODALS = {
+    "digital-divide": {
+      src: "images/digital-divide.png",
+      alt: "Visuals from Philadelphia Digital Divide analysis",
+      caption: "Philadelphia Digital Divide analysis visuals"
+    },
+    "indego": {
+      src: "images/indego-top10-summer2025.png", // put your actual path; e.g. /images/indego.png
+      alt: "Map of the 10 busiest Indego bike-share stations in Philadelphia, Summer 2025.",
+      caption: "Indego Bike Share analysis"
+    }
+  };
 
-  // close helpers
-  function closeModal() {
-    document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+  const modal = document.getElementById('modal');
+  const modalImg = document.getElementById('modal-image');
+  const modalCaption = document.getElementById('modal-caption');
+  const closeBtn = modal.querySelector('.modal-close');
+
+  function openModal(key){
+    const data = MODALS[key];
+    if(!data) return;
+    // set image + alt + caption
+    modalImg.src = data.src;
+    modalImg.alt = data.alt;
+    modalCaption.textContent = data.caption;
+    // show modal + lock scroll
+    modal.setAttribute('aria-hidden','false');
+    document.documentElement.style.overflow = 'hidden';
+    // focus the close button for accessibility
+    closeBtn.focus();
   }
 
-  // click outside to close
-  document.addEventListener('click', (e) => {
-    const modal = e.target.closest('.modal-content');
-    if (!modal && e.target.classList.contains('modal')) closeModal();
+  function closeModal(){
+    modal.setAttribute('aria-hidden','true');
+    // clear image so a tiny broken thumbnail doesn’t remain
+    modalImg.src = '';
+    modalImg.alt = '';
+    document.documentElement.style.overflow = '';
+  }
+
+  // Open on tag click
+  document.addEventListener('click', (e)=>{
+    const el = e.target.closest('.tag.clickable[data-modal]');
+    if(el){
+      openModal(el.getAttribute('data-modal'));
+    }
+    if(e.target === modal){ // click backdrop to close
+      closeModal();
+    }
   });
 
-  // Esc to close
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
+  // Close button
+  closeBtn.addEventListener('click', closeModal);
+
+  // ESC to close
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false'){
+      closeModal();
+    }
   });
 </script>
+
 
 
 
